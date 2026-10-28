@@ -1,0 +1,13 @@
+{
+ "seed": 42,
+ "images": 200,
+ "tried": 233,
+ "rejected_by_model": {
+  "resnet": 6,
+  "vgg19": 4,
+  "mobilenet": 15,
+  "vit": 3,
+  "mixer": 9,
+  "greed": 19
+ }
+}

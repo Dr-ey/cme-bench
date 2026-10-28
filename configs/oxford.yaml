@@ -1,0 +1,12 @@
+# Oxford-IIIT Pet, 200 images (100 cats + 100 dogs, seed 42, correctly classified by all six
+# Cats-vs-Dogs classifiers). Used for localization against ground-truth trimaps (reviewer M11-M13):
+# the article's models and methods, generation/evaluation background 'mean' (+ 'blur' as a check).
+dataset:
+  name: oxford
+  list: lists/oxford_eval_200.csv
+  archs: [resnet, vgg19, mobilenet, greed, vit, mixer]
+
+backgrounds: [mean, blur]
+
+methods:
+  cme_adaptive: {bg: true, archs: []}   # Adaptive CME is tuned on Cats-vs-Dogs only

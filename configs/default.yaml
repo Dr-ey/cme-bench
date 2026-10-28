@@ -1,0 +1,74 @@
+# cme-bench — default configuration (single source of truth). Dataset configs override parts of it.
+# Never override parameters in notebooks: change them here (or via CLI `--set key=value`) so the
+# config hash stored next to every result stays truthful.
+
+paths:
+  data: data            # PetImages/, imagenetv2/, oxford-iiit-pet/
+  weights: weights      # *.pth of the article (GitHub Release)
+  runs: runs            # maps/, metrics/, tables/, figures/
+  logs: logs
+
+seed: 42
+determinism: true       # torch.use_deterministic_algorithms(warn_only=True), cudnn.deterministic
+
+preprocess:
+  size: 224
+  resize: stretch_bicubic   # article code: transforms.Resize((224,224), BICUBIC) — no center crop
+
+# Canonical CME of the article = exp_001_cgd.CGD_CONFIG (+ CGD_LOSS_MODE, CGD_MAX_AREA).
+cme:
+  iterations: 1000
+  lr: 0.05
+  weight_class: 0.05
+  weight_blur: 0.95       # paper: w_reg (regularization weight); code name kept
+  weight_sharpness: 0.5
+  err_method: square
+  init_alpha_logit: 4.0
+  loss_mode: logits
+  max_area: 0.20          # equal-area cap (all images hit it -> effectively top-20%)
+  fast: false             # true -> exp_001_cgd_fast (strict mode, bit-identical per FILES.md)
+
+# Backgrounds: generation (perturbation methods) and evaluation (all methods).
+backgrounds: [mean, blur, black, noise]
+blur_sigma: 10.0
+
+evaluation:
+  n_steps: 50             # Deletion/Insertion resolution (51 points)
+  random_k: 5             # smooth random maps per image for the Random control
+
+# Methods. `bg: true` -> the map depends on the generation background.
+# `archs`: null = all archs of the dataset.
+methods:
+  cme:            {bg: true,  archs: null}
+  cam:            {bg: false, archs: [resnet, greed]}
+  gradcam:        {bg: false, archs: null}
+  gradcam++:      {bg: false, archs: null}
+  guided:         {bg: false, archs: null}
+  guided_gradcam: {bg: false, archs: null}
+  random:         {bg: false, archs: null}
+  rise:           {bg: true,  archs: null, n_masks: 4000, grid: 7, p: 0.5, batch: 64}
+  mp:             {bg: true,  archs: null, mask_res: 28, iterations: 500, lr: 0.1, l1: 0.01, tv: 0.2, tv_beta: 3, jitter: 4}
+  ep:             {bg: true,  archs: null, areas: [0.05, 0.1, 0.2], iterations: 800}
+  scorecam:       {bg: true,  archs: null, batch: 32}
+  libragrad:      {bg: false, archs: [vit, mixer]}
+  cme_adaptive:   {bg: true,  archs: null}   # needs the 'adaptive' stage (configs: catsdogs only)
+
+# Order in which the orchestrator schedules work (earlier = sooner).
+priority:
+  backgrounds: [mean, blur, black, noise]
+  methods: [cme, gradcam, gradcam++, guided, guided_gradcam, cam, random, rise, scorecam, libragrad, mp, ep, cme_adaptive]
+  archs: [greed, resnet, mobilenet, vgg19, mixer, vit]
+
+# Adaptive CME (stage 'adaptive'): selection on 50 images, validation on 50 held-out images.
+adaptive:
+  n_per_class: 50       # pool of 100 images outside eval-200
+  n_coarse: 32          # images for the 36-config coarse screening
+  select_bg: blur       # selection criterion background (differs from the headline 'mean')
+  keep_rate: 0.95       # a config is valid if the decision is kept on >= 95 % of images
+  min_gain: 0.02        # fallback to canonical unless held-out gain >= 0.02 and p < 0.05
+
+orchestrator:
+  shard_size: 20          # images per task
+  retries: 2
+  heartbeat_s: 60
+  dead_after_s: 300

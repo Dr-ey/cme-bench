@@ -1,0 +1,4 @@
+# Article environment (RTX 20xx/30xx/40xx). Do not change: results of the article were produced with it.
+--extra-index-url https://download.pytorch.org/whl/cu118
+torch==2.2.2+cu118
+torchvision==0.17.2+cu118

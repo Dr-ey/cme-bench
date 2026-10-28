@@ -1,0 +1,13 @@
+# data, weights and results never go to git (weights -> GitHub Release)
+data/
+weights/
+runs/
+runs_*/
+logs/
+*.pth
+*.npz
+__pycache__/
+*.egg-info/
+.venv/
+*.tmp
+runs_smoke_tasks*.txt

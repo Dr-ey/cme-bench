@@ -1,0 +1,19 @@
+# Installation smoke test: 4 images, short CME, two archs. Runs in a few minutes on a GPU.
+dataset:
+  name: catsdogs
+  list: lists/catsdogs_eval_200.csv
+  limit: 4
+  archs: [greed, resnet]
+
+cme:
+  iterations: 50
+
+backgrounds: [mean, blur]
+
+methods:
+  rise: {n_masks: 200}
+  mp: {iterations: 30}
+  ep: {iterations: 30}
+
+paths:
+  runs: runs_smoke

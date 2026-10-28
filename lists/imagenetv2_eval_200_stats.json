@@ -1,0 +1,13 @@
+{
+ "seed": 42,
+ "classes": 200,
+ "images_tried": 577,
+ "rejected_by_model": {
+  "vgg19": 288,
+  "mobilenet": 281,
+  "vit": 225,
+  "mixer": 286,
+  "resnet": 222
+ },
+ "classes_scanned": 211
+}

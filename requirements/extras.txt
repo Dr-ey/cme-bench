@@ -1,0 +1,3 @@
+# Extremal Perturbations (authors' TorchRay, CC BY-NC 4.0 — installed, not vendored). --no-deps is
+# applied by the installers: EP needs only torch/numpy/matplotlib/packaging, not pycocotools/pymongo.
+torchray==1.0.0.2

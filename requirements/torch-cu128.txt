@@ -1,0 +1,5 @@
+# RTX 50xx (Blackwell, compute capability 12.x) needs CUDA >= 12.8 -> torch >= 2.7.
+# numpy 1.23 is not built for every newer Python; this branch lets pip pick a compatible numpy.
+--extra-index-url https://download.pytorch.org/whl/cu128
+torch==2.7.1+cu128
+torchvision==0.22.1+cu128

@@ -1,0 +1,10 @@
+# ImageNetV2 matched-frequency, 200 images (1 per class from 200 classes, seed 42, only images that
+# all 5 networks classify correctly). Multiclass control task requested by the reviewer.
+dataset:
+  name: imagenetv2
+  list: lists/imagenetv2_eval_200.csv
+  archs: [resnet, vgg19, mobilenet, vit, mixer]   # no ImageNet GREED
+
+methods:
+  cme_adaptive: {bg: true, archs: []}   # Adaptive CME is tuned on Cats-vs-Dogs only
+  cam: {bg: false, archs: [resnet]}

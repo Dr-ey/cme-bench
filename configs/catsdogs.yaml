@@ -1,0 +1,6 @@
+# Kaggle Dogs vs. Cats (Microsoft PetImages), the article's main task. Cat=0, Dog=1.
+dataset:
+  name: catsdogs
+  list: lists/catsdogs_eval_200.csv
+  tuning_list: lists/catsdogs_tuning_16.csv
+  archs: [resnet, vgg19, mobilenet, greed, vit, mixer]
