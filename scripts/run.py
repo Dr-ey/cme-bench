@@ -2,6 +2,7 @@
 
     python scripts/run.py --config configs/catsdogs.yaml
     python scripts/run.py --config configs/catsdogs.yaml --machine-id A --part 0/2     # machine A of 2
+    python scripts/run.py --config configs/catsdogs.yaml --part 0/2 --sub 1/3          # its local worker 1 of 3
     python scripts/run.py --config configs/catsdogs.yaml --only method=cme,gradcam bg=mean --dry-run
     python scripts/run.py --config configs/catsdogs.yaml --stages extra                 # fidelity_T, sanity, ...
 
@@ -31,9 +32,10 @@ from cmebench.store import read_json  # noqa: E402
 from cmebench.tasks import Task, all_tasks  # noqa: E402
 
 
-def part_of(task: Task, k: int, n: int) -> bool:
+def part_of(task: Task, k: int, n: int, i: int = 0, w: int = 1) -> bool:
+    """Machine part k of n, then local worker i of w inside it (w may differ between machines)."""
     h = int(hashlib.sha1(f"{task.arch}:{task.shard}".encode()).hexdigest()[:8], 16)
-    return h % n == k
+    return h % n == k and (h // n) % w == i
 
 
 def matches(task: Task, only: dict) -> bool:
@@ -53,6 +55,7 @@ def main() -> int:
     ap.add_argument("--stages", default="gen,eval")
     ap.add_argument("--machine-id", default=os.environ.get("CMEBENCH_MACHINE", "local"))
     ap.add_argument("--part", default="0/1", help="k/N: this machine takes part k of N")
+    ap.add_argument("--sub", default="0/1", help="i/W: local parallel worker i of W within this part")
     ap.add_argument("--only", nargs="*", default=[], help="filters key=v1,v2 (arch, method, stage, bg)")
     ap.add_argument("--batch", type=int, default=40, help="tasks per worker process")
     ap.add_argument("--wait", action="store_true", help="when blocked, wait for other machines instead of exiting")
@@ -61,13 +64,14 @@ def main() -> int:
 
     cfg = load_config(a.config, a.set)
     k, n = (int(v) for v in a.part.split("/"))
+    i, w = (int(v) for v in a.sub.split("/"))
     only = {kv.split("=")[0]: kv.split("=")[1].split(",") for kv in a.only}
     stages = a.stages.split(",")
     if "extra" in stages:
         from cmebench.extra import run_extra_stages  # noqa: WPS433
         return run_extra_stages(cfg, a)
 
-    tasks = [t for t in all_tasks(cfg, stages) if part_of(t, k, n) and matches(t, only)]
+    tasks = [t for t in all_tasks(cfg, stages) if part_of(t, k, n, i, w) and matches(t, only)]
     retries = int(cfg["orchestrator"]["retries"])
     attempts: Counter = Counter()
     py = sys.executable

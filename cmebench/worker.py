@@ -8,6 +8,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import os
 import time
 import traceback
 import warnings
@@ -49,6 +50,23 @@ class Logger:
             f.write(json.dumps(rec, default=str) + "\n")
 
 
+def limit_vram(device: torch.device) -> None:
+    """With several workers on one GPU (run_all.py --workers W sets CMEBENCH_GPU_SHARE=W) cap this
+    process's PyTorch allocations, so its cache is released instead of crowding out the others.
+    CMEBENCH_VRAM_GB sets the cap explicitly."""
+    if device.type != "cuda":
+        return
+    idx = device.index if device.index is not None else torch.cuda.current_device()
+    total = torch.cuda.get_device_properties(idx).total_memory / 2**30
+    gb = float(os.environ.get("CMEBENCH_VRAM_GB", 0))
+    share = int(os.environ.get("CMEBENCH_GPU_SHARE", 1))
+    if not gb and share > 1:
+        # keep ~1 GB for the desktop and ~0.45 GB per process for the CUDA context itself
+        gb = max(1.0, (0.9 * total - 1.0 - 0.45 * share) / share)
+    if gb:
+        torch.cuda.set_per_process_memory_fraction(min(1.0, gb / total), idx)
+
+
 class Worker:
     def __init__(self, cfg: Dict, machine_id: str = "local") -> None:
         self.cfg = cfg
@@ -56,6 +74,8 @@ class Worker:
             set_determinism(int(cfg["seed"]))
         self.device = get_device()
         self.log = Logger(cfg, machine_id)
+        self._batch: Dict[tuple, int] = {}  # (arch, method) -> batch size reduced after an OOM
+        limit_vram(self.device)
         self.items: List[Item] = load_items(cfg)
         self._models: Dict[str, torch.nn.Module] = {}
         self.env = env_record()
@@ -92,9 +112,26 @@ class Worker:
             ctx = Context(arch, cfg["dataset"]["name"], item.image_id, tuple(mean), tuple(std), self.device,
                           dict(cfg["methods"][task.method]), cfg, task.gen_bg)
             t0 = time.time()
-            res = fn(model, x, bg, ctx)
+            res = self._explain(fn, model, x, bg, ctx, task)
             res.extra["Seconds"] = time.time() - t0
             save_map(out, res.saliency, res.target_class, res.extra)
+
+    def _explain(self, fn, model, x, bg, ctx: Context, task: Task):
+        """Call a method; on CUDA OOM halve its 'batch' (RISE, Score-CAM) and retry. The batch size only
+        changes the speed, not the map, so it is not part of the task hash."""
+        key = (task.arch, task.method)
+        if key in self._batch:
+            ctx.params["batch"] = self._batch[key]
+        while True:
+            try:
+                return fn(model, x, bg, ctx)
+            except torch.cuda.OutOfMemoryError:
+                torch.cuda.empty_cache()
+                bs = int(ctx.params.get("batch", 0))
+                if bs <= 1:
+                    raise
+                ctx.params["batch"] = self._batch[key] = bs // 2
+                self.log.event("oom_batch", task, batch=bs // 2)
 
     # ------------------------------------------------------------------ eval
     def run_eval(self, task: Task) -> None:
