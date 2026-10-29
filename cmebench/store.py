@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import os
 import tempfile
+import time
 from pathlib import Path
 from typing import Dict, Optional
 
@@ -57,11 +58,24 @@ def write_json_atomic(path: Path, obj: Dict[str, object]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_suffix(path.suffix + ".tmp")
     tmp.write_text(json.dumps(obj, indent=1, default=str), encoding="utf-8")
-    os.replace(tmp, path)
+    # Windows refuses to replace a file another process has open (status.py / watch.py reading it,
+    # antivirus, indexer): retry for ~5 s before giving up
+    for k in range(20):
+        try:
+            os.replace(tmp, path)
+            return
+        except PermissionError:
+            if k == 19:
+                raise
+            time.sleep(0.05 * (k + 1))
 
 
 def read_json(path: Path) -> Optional[Dict[str, object]]:
-    try:
-        return json.loads(path.read_text(encoding="utf-8"))
-    except (FileNotFoundError, json.JSONDecodeError):
-        return None
+    for k in range(5):
+        try:
+            return json.loads(path.read_text(encoding="utf-8"))
+        except (FileNotFoundError, json.JSONDecodeError):
+            return None
+        except PermissionError:  # being replaced right now (Windows)
+            time.sleep(0.05 * (k + 1))
+    return None
