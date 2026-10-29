@@ -4,6 +4,7 @@
     python scripts/run.py --config configs/catsdogs.yaml --machine-id A --part 0/2     # machine A of 2
     python scripts/run.py --config configs/catsdogs.yaml --part 0/2 --sub 1/3          # its local worker 1 of 3
     python scripts/run.py --config configs/catsdogs.yaml --only method=cme,gradcam bg=mean --dry-run
+    python scripts/run.py --config configs/catsdogs.yaml --only gen_bg=mean,none eval_bg=mean,blur
     python scripts/run.py --config configs/catsdogs.yaml --stages extra                 # fidelity_T, sanity, ...
 
 Work is split between machines by (arch, image shard), so an evaluation task and the maps it needs
@@ -43,7 +44,9 @@ def matches(task: Task, only: dict) -> bool:
         if key == "bg":
             if not ({task.gen_bg, task.eval_bg} & set(vals)) and not (task.gen_bg is None and task.eval_bg is None):
                 return False
-        elif str(getattr(task, key)) not in vals:
+        elif key == "eval_bg" and task.stage == "gen":
+            continue  # an eval-background filter selects evaluations, not the maps they need
+        elif str(getattr(task, key) or "none") not in vals:
             return False
     return True
 

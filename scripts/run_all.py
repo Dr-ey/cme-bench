@@ -1,6 +1,7 @@
 """Run everything the article needs, in priority order; resumable (restart = continue).
 
     python scripts/run_all.py [--machine-id A --part 0/2] [--workers 3] [--from-step N]
+    python scripts/run_all.py --workers 3 --first gen_bg=mean,none eval_bg=mean,blur   # article minimum first
 
 Steps (each is a scripts/run.py call; finished work is skipped automatically):
   1  catsdogs   main comparison (12 methods x 4 x 4 backgrounds; EP and Adaptive last by priority)
@@ -57,6 +58,9 @@ def main() -> int:
     ap.add_argument("--part", default="0/1")
     ap.add_argument("--workers", type=int, default=1, help="parallel orchestrators on this GPU (split steps)")
     ap.add_argument("--from-step", type=int, default=1)
+    ap.add_argument("--first", nargs="*", default=[],
+                    help="run.py filters for a priority subset of step 1, e.g. gen_bg=mean,none eval_bg=mean,blur; "
+                         "the rest of step 1 then runs after step 5")
     a = ap.parse_args()
     k = int(a.part.split("/")[0])
     common = ["--machine-id", a.machine_id, "--part", a.part]
@@ -65,15 +69,17 @@ def main() -> int:
                                  "--machine-id", a.machine_id, *extra]  # non-split step: all parts on part 0
     extra = lambda cfg, stage: ["scripts/run.py", "--config", cfg, "--machine-id", a.machine_id,  # noqa: E731
                                 "--stages", "extra", "--only", f"stage={stage}"]
+    main_methods = "method=" + ",".join(["cme", "gradcam", "gradcam++", "guided", "guided_gradcam", "cam", "random",
+                                         "rise", "scorecam", "libragrad", "mp", "ep"])
     steps = [
-        (1, [main_run("configs/catsdogs.yaml", "--only", "method=" + ",".join(
-            ["cme", "gradcam", "gradcam++", "guided", "guided_gradcam", "cam", "random", "rise", "scorecam",
-             "libragrad", "mp", "ep"]))], True),
+        (1, [main_run("configs/catsdogs.yaml", "--only", main_methods, *a.first)], True),
         (2, [extra("configs/catsdogs.yaml", "fidelity_T")], False),
         (3, [extra("configs/catsdogs.yaml", "sanity")], False),
         (4, [extra("configs/catsdogs.yaml", "adaptive"),
              whole("configs/catsdogs.yaml", "--only", "method=cme_adaptive")], False),
         (5, [extra("configs/catsdogs.yaml", "complementarity")], False),
+        # with --first: the rest of the catsdogs main comparison (other backgrounds) after the extra stages
+        (5, [main_run("configs/catsdogs.yaml", "--only", main_methods)] if a.first else [], True),
         (6, [main_run("configs/oxford.yaml"), extra("configs/oxford.yaml", "oxford"),
              extra("configs/oxford.yaml", "shortcut")], True),
         (7, [main_run("configs/imagenetv2.yaml")], True),
