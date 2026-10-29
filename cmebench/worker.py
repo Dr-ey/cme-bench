@@ -61,8 +61,8 @@ def limit_vram(device: torch.device) -> None:
     gb = float(os.environ.get("CMEBENCH_VRAM_GB", 0))
     share = int(os.environ.get("CMEBENCH_GPU_SHARE", 1))
     if not gb and share > 1:
-        # keep ~1 GB for the desktop and ~0.45 GB per process for the CUDA context itself
-        gb = max(1.0, (0.9 * total - 1.0 - 0.45 * share) / share)
+        # keep ~0.8 GB for the desktop and ~0.35 GB per process for the CUDA context itself
+        gb = max(1.0, (0.95 * total - 0.8 - 0.35 * share) / share)
     if gb:
         torch.cuda.set_per_process_memory_fraction(min(1.0, gb / total), idx)
 

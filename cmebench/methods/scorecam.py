@@ -37,17 +37,16 @@ def scorecam(model, x, background, ctx: Context) -> ExplainResult:
         h.remove()
     a = store["a"]
     a = reshape(a) if reshape is not None else a                      # (1, K, h, w)
-    up = F.interpolate(a, size=x.shape[-2:], mode="bilinear", align_corners=False)[0]
-    mn = up.flatten(1).min(dim=1).values.view(-1, 1, 1)
-    mx = up.flatten(1).max(dim=1).values.view(-1, 1, 1)
-    masks = ((up - mn) / (mx - mn).clamp_min(1e-8)).unsqueeze(1)      # (K, 1, H, W)
     scores = []
     bs = int(ctx.params.get("batch", 32))
     with torch.no_grad():
-        for i in range(0, masks.shape[0], bs):
-            m = masks[i:i + bs]
+        for i in range(0, a.shape[1], bs):  # masks built per batch: per-channel ops, same values, less VRAM
+            up = F.interpolate(a[:, i:i + bs], size=x.shape[-2:], mode="bilinear", align_corners=False)[0]
+            mn = up.flatten(1).min(dim=1).values.view(-1, 1, 1)
+            mx = up.flatten(1).max(dim=1).values.view(-1, 1, 1)
+            m = ((up - mn) / (mx - mn).clamp_min(1e-8)).unsqueeze(1)  # (bs, 1, H, W)
             scores.append(torch.softmax(model(x * m + bg * (1.0 - m)), dim=1)[:, target])
     w = torch.softmax(torch.cat(scores), dim=0).view(1, -1, 1, 1)
     cam = F.relu((w * a).sum(dim=1, keepdim=True))
     cam = F.interpolate(cam, size=x.shape[-2:], mode="bilinear", align_corners=False)[0, 0]
-    return ExplainResult(normalize01(cam.cpu().numpy()), target, {"Channels": int(masks.shape[0])})
+    return ExplainResult(normalize01(cam.cpu().numpy()), target, {"Channels": int(a.shape[1])})

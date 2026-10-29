@@ -68,7 +68,15 @@ def iou(mask_a: np.ndarray, mask_b: np.ndarray) -> float:
 
 def _target_prob(model: nn.Module, batch: torch.Tensor, target_class: int) -> np.ndarray:
     with torch.no_grad():
-        probs = torch.softmax(model(batch), dim=1)[:, target_class]
+        try:
+            probs = torch.softmax(model(batch), dim=1)[:, target_class]
+        except torch.cuda.OutOfMemoryError:  # shared GPU: split the batch (same values, smaller peak)
+            if batch.shape[0] == 1:
+                raise
+            torch.cuda.empty_cache()
+            h = (batch.shape[0] + 1) // 2
+            return np.concatenate([_target_prob(model, batch[:h], target_class),
+                                   _target_prob(model, batch[h:], target_class)])
     return probs.detach().cpu().numpy()
 
 
