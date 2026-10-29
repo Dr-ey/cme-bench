@@ -75,6 +75,10 @@ def main() -> int:
         return run_extra_stages(cfg, a)
 
     tasks = [t for t in all_tasks(cfg, stages) if part_of(t, k, n, i, w) and matches(t, only)]
+    if "gen" in stages:  # a filter must not drop the maps its evaluations need (e.g. the CME reference map)
+        chosen = set(tasks)
+        tasks += [d for t in list(tasks) for d in t.dependencies(cfg)
+                  if d not in chosen and not chosen.add(d)]
     retries = int(cfg["orchestrator"]["retries"])
     attempts: Counter = Counter()
     py = sys.executable
