@@ -1,5 +1,7 @@
 # cme-bench
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23808635.svg)](https://doi.org/10.5281/zenodo.23808635)
+
 Reproducible benchmark for **Competitive Mask Erosion (CME)** — an input-space, architecture-agnostic
 saliency method — against CAM, Grad-CAM, Grad-CAM++, Guided Backpropagation, Guided Grad-CAM, RISE,
 Meaningful Perturbation, Extremal Perturbations, Score-CAM and LibraGrad, on six classifiers
@@ -96,7 +98,7 @@ python scripts/status.py     --config configs/catsdogs.yaml --failed
 
 * **Results** behind the article revision (Cats-vs-Dogs, mean and blur backgrounds): [`results/`](results/README.md).
 * **Weights** of the six classifiers: GitHub Release [v1.0](https://github.com/Dr-ey/cme-bench/releases/tag/v1.0), downloaded and SHA-256-checked by `scripts/20_get_models.py --release v1.0`.
-* **Citation:** see [`CITATION.cff`](CITATION.cff). Code: MIT licence ([`LICENSE`](LICENSE)); Extremal Perturbations rely on TorchRay (CC BY-NC 4.0), which is installed separately and not distributed here.
+* **Citation:** see [`CITATION.cff`](CITATION.cff); archived on Zenodo, DOI [10.5281/zenodo.23808635](https://doi.org/10.5281/zenodo.23808635) (all versions). Code: MIT licence ([`LICENSE`](LICENSE)); Extremal Perturbations rely on TorchRay (CC BY-NC 4.0), which is installed separately and not distributed here.
 
 ## Status of stages
 
