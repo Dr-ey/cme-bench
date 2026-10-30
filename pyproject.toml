@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cmebench"
-version = "1.0.0"
+version = "1.0.1"
 description = "Reproducible benchmark for Competitive Mask Erosion (CME) vs saliency baselines"
 requires-python = ">=3.10"
 

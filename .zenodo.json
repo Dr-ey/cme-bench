@@ -1,0 +1,13 @@
+{
+  "upload_type": "software",
+  "title": "cme-bench: reproducible benchmark for Competitive Mask Erosion (CME)",
+  "description": "Code and per-image results of the benchmark comparing Competitive Mask Erosion (CME) with CAM, Grad-CAM, Grad-CAM++, Guided Backpropagation, Guided Grad-CAM, RISE, Score-CAM, Meaningful Perturbation, Extremal Perturbations and LibraGrad on six classifiers (ViT-B/16, MLP-Mixer-B/16, ResNet50, VGG19, MobileNetV3, GREED). Accompanies the article 'Competitive Mask Erosion: An Architecture-Agnostic Method for Visualizing Classifier-Relevant Image Features'. The classifier weights are attached to the GitHub Release v1.0 (https://github.com/Dr-ey/cme-bench/releases/tag/v1.0).",
+  "creators": [
+    {"name": "Drieiev, Oleksandr", "affiliation": "Central Ukrainian National Technical University"}
+  ],
+  "license": "MIT",
+  "keywords": ["explainable AI", "saliency maps", "Competitive Mask Erosion", "Grad-CAM", "vision transformers", "benchmark"],
+  "related_identifiers": [
+    {"identifier": "https://github.com/Dr-ey/cme-bench/releases/tag/v1.0", "relation": "isSupplementedBy", "resource_type": "other"}
+  ]
+}
