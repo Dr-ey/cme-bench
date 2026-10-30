@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite the article below."
+title: "cme-bench: reproducible benchmark for Competitive Mask Erosion (CME)"
+version: 1.0.0
+date-released: 2026-10-30
+license: MIT
+repository-code: "https://github.com/Dr-ey/cme-bench"
+authors:
+  - family-names: Drieiev
+    given-names: Oleksandr
+    affiliation: "Central Ukrainian National Technical University"
+preferred-citation:
+  type: article
+  title: "Competitive Mask Erosion: An Architecture-Agnostic Method for Visualizing Classifier-Relevant Image Features"
+  status: submitted
+  authors:
+    - family-names: Al-Oraiqat
+      given-names: Anas M.
+    - family-names: Drieiev
+      given-names: Oleksandr
+    - family-names: Jbara
+      given-names: Yosef Hasan Fayez
+    - family-names: Al-Oraiqat
+      given-names: Karim A.
+    - family-names: Yassin
+      given-names: Mahmoud Y. M.

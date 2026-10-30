@@ -27,7 +27,7 @@ from cmebench.data.datasets import load_image, load_items  # noqa: E402
 from cmebench.models.registry import ARCHS, CATSDOGS_WEIGHTS, build_model, norm_for  # noqa: E402
 
 RELEASE_URL = "https://github.com/{repo}/releases/download/{tag}/{file}"
-DEFAULT_REPO = "DreySanya/cme-bench"  # set to the final GitHub repository
+DEFAULT_REPO = "Dr-ey/cme-bench"
 
 
 def sha256(p: Path) -> str:

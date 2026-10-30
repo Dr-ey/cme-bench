@@ -1,0 +1,13 @@
+Dataset,Arch,EvalBg,Ceiling
+catsdogs,greed,blur,0.145
+catsdogs,greed,mean,0.185
+catsdogs,mixer,blur,0.215
+catsdogs,mixer,mean,0.125
+catsdogs,mobilenet,blur,0.085
+catsdogs,mobilenet,mean,0.08
+catsdogs,resnet,blur,0.095
+catsdogs,resnet,mean,0.095
+catsdogs,vgg19,blur,0.455
+catsdogs,vgg19,mean,0.415
+catsdogs,vit,blur,0.295
+catsdogs,vit,mean,0.22

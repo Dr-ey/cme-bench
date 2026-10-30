@@ -17,7 +17,7 @@ per-image metrics.
 source .venv/bin/activate       # Windows: .venv\Scripts\activate.bat
 
 python scripts/10_get_data.py --dataset catsdogs imagenetv2      # download + SHA-256 verification
-python scripts/20_get_models.py --release v1.0                   # or --from-dir <article project>
+python scripts/20_get_models.py --release v1.0                   # weights from the GitHub Release
 python scripts/20_get_models.py --imagenet --no-accuracy         # cache ImageNet weights
 
 python scripts/run.py --config configs/smoke.yaml                # 5-minute smoke test
@@ -86,9 +86,17 @@ python scripts/run.py --config configs/oxford.yaml   --stages extra --only stage
 
 # 4. tables and figures
 python scripts/60_stats.py   --config configs/catsdogs.yaml   (and imagenetv2, oxford)
+python scripts/61_table2.py  --config configs/catsdogs.yaml   # Table 2 of the article
+python scripts/62_area_auc.py --config configs/catsdogs.yaml  # Deletion/Insertion AUC over 0-20 % of the area
 python scripts/65_figures.py --config configs/catsdogs.yaml
 python scripts/status.py     --config configs/catsdogs.yaml --failed
 ```
+
+## Results, weights, citation
+
+* **Results** behind the article revision (Cats-vs-Dogs, mean and blur backgrounds): [`results/`](results/README.md).
+* **Weights** of the six classifiers: GitHub Release [v1.0](https://github.com/Dr-ey/cme-bench/releases/tag/v1.0), downloaded and SHA-256-checked by `scripts/20_get_models.py --release v1.0`.
+* **Citation:** see [`CITATION.cff`](CITATION.cff). Code: MIT licence ([`LICENSE`](LICENSE)); Extremal Perturbations rely on TorchRay (CC BY-NC 4.0), which is installed separately and not distributed here.
 
 ## Status of stages
 
